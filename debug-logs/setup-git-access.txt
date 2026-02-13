@@ -1,0 +1,182 @@
+
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate
+$ git init
+
+$ git add .
+
+
+$ git commit -m "1st ommit"
+
+$ git status
+On branch master
+nothing to commit, working tree clean
+
+$ git remote add origin https://github.com/lucyloveszoe/hy.cursor.consolidate.git
+
+$ git branch -M main
+
+$ git push -u origin main
+remote: Permission to lucyloveszoe/hy.cursor.consolidate.git denied to hybrcmwsd.
+fatal: unable to access 'https://github.com/lucyloveszoe/hy.cursor.consolidate.git/': The requested URL returned error: 403
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+
+=================== Fix the access 
+
+$ git config --global user.name "lucyloveszoe"
+
+$ git config --global user.email "hysir2001@gmail.com"
+
+$ git config --list
+diff.astextplain.textconv=astextplain
+filter.lfs.clean=git-lfs clean -- %f
+filter.lfs.smudge=git-lfs smudge -- %f
+filter.lfs.process=git-lfs filter-process
+filter.lfs.required=true
+http.sslbackend=schannel
+core.autocrlf=true
+core.fscache=true
+core.symlinks=false
+pull.rebase=false
+credential.helper=manager
+credential.https://dev.azure.com.usehttppath=true
+init.defaultbranch=master
+user.email=hysir2001@gmail.com
+user.name=lucyloveszoe
+core.repositoryformatversion=0
+core.filemode=false
+core.bare=false
+core.logallrefupdates=true
+core.symlinks=false
+core.ignorecase=true
+remote.origin.url=https://github.com/lucyloveszoe/hy.cursor.consolidate.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+
+
+$ git push -u origin main
+remote: Permission to lucyloveszoe/hy.cursor.consolidate.git denied to hybrcmwsd.
+fatal: unable to access 'https://github.com/lucyloveszoe/hy.cursor.consolidate.git/': The requested URL returned error: 403
+
+// Update windows credential manager to point to the new account 
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git push -u origin main
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/lucyloveszoe/hy.cursor.consolidate.git/'
+
+=================== Add the token 
+
+$ git remote set-url origin https://lucyloveszoe@github.com/lucyloveszoe/hy.cursor.consolidate.git
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git push -u origin main
+To https://github.com/lucyloveszoe/hy.cursor.consolidate.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/lucyloveszoe/hy.cursor.consolidate.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+$ git pull
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.83 KiB | 181.00 KiB/s, done.
+From https://github.com/lucyloveszoe/hy.cursor.consolidate
+ * [new branch]      main       -> origin/main
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details.
+
+    git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+    git branch --set-upstream-to=origin/<branch> main
+
+
+$ git push -u origin main
+To https://github.com/lucyloveszoe/hy.cursor.consolidate.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/lucyloveszoe/hy.cursor.consolidate.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+
+=================== Set up tracking and enable unrelated 
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git branch --set-upstream-to=origin/main main
+branch 'main' set up to track 'origin/main'.
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git pull
+fatal: refusing to merge unrelated histories
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+
+
+$ git pull origin main --allow-unrelated-histories
+From https://github.com/lucyloveszoe/hy.cursor.consolidate
+ * branch            main       -> FETCH_HEAD
+Auto-merging README.md
+CONFLICT (add/add): Merge conflict in README.md
+Automatic merge failed; fix conflicts and then commit the result.
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main|MERGING)
+
+
+$ git pull
+error: Pulling is not possible because you have unmerged files.
+hint: Fix them up in the work tree, and then use 'git add/rm <file>'
+hint: as appropriate to mark resolution and make a commit.
+fatal: Exiting because of an unresolved conflict.
+
+================= Now add in files 
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main|MERGING)
+$ git add .
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main|MERGING)
+$ git status
+On branch main
+Your branch and 'origin/main' have diverged,
+and have 1 and 1 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+All conflicts fixed but you are still merging.
+  (use "git commit" to conclude merge)
+
+Changes to be committed:
+        new file:   .gitignore
+        modified:   README.md
+
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main|MERGING)
+$ git commit -m "2nd try"
+[main e89deb9] 2nd try
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git push
+Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 22 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (8/8), 2.04 KiB | 2.04 MiB/s, done.
+Total 8 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/lucyloveszoe/hy.cursor.consolidate.git
+   712f37a..e89deb9  main -> main
+
+hany@GG50DC4 MINGW64 /c/Temp/AllCode/Cursor/hy.cursor.consolidate (main)
+$ git pull
+Already up to date.
