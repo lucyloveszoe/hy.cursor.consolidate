@@ -36,6 +36,52 @@ python content-supersearch.py D:\Data keyword --ext .txt .csv .log
 
 ---
 
+### youtube-downloader.py — YouTube 视频下载
+
+下载 YouTube 视频（含仅自己可见、会员视频），默认最高画质，同时下载所有语言字幕。
+
+**前置条件：**
+- 浏览器已登录 YouTube（Chrome 默认，可用 `--browser` 指定其他）
+- 安装 ffmpeg 以获得 1080p/4K 最高画质：`winget install ffmpeg`
+
+**用法：**
+```powershell
+.\.venv\Scripts\Activate.ps1
+
+# 基本用法（最高画质 + 所有字幕）
+python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos
+
+# 指定浏览器（Edge/Firefox/Brave 等）
+python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --browser edge
+
+# 限制画质为 1080p
+python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --quality 1080
+
+# 不下载字幕
+python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --no-subtitles
+
+# 下载公开视频（不读取 cookies）
+python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --browser none
+```
+
+---
+
+### gdrive-local-sync.py — Google Drive 文件夹同步
+
+将 Google Drive 指定文件夹同步到本地，支持递归子文件夹、Google 原生格式导出。
+
+**前置条件：**
+- 设置环境变量：`set GDRIVE_CREDENTIALS=C:\path\to\credentials.json`
+
+**用法：**
+```powershell
+.\.venv\Scripts\Activate.ps1
+set GDRIVE_CREDENTIALS=C:\Users\hany\secrets\credentials.json
+python gdrive-local-sync.py "https://drive.google.com/drive/folders/xxx" D:\Backup
+```
+
+---
+
 ### license-prep.py — Cursor License 用量分析
 
 从 `data\input.xlsx` 读取许可证和用量数据，匹配邮箱、计算 monthly-spend-limit 并输出新表。

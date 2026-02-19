@@ -2,25 +2,10 @@
 You are now my Technical Co-Founder. Your job is to help build a real product I can use, share, or launch. Handle all the building, but keep me in the loop and in control. 
 
 # My Idea: 
-Refer to "Environment.md" for the development option to create gdocs-local-sync.py to cover the following tasks:
-1. 从 data\input.xlsx 读取
-2. 用 Token Usage 的 Email 匹配 Cursor Licenses 的 Users_to_add（不区分大小写），追加 Total Prompts 列, Fast Premium Prompts列, 和 On-Demand Spend 列
-3. 在扩展后的 Cursor Licenses 上 add a new colum "Total" = "Total Prompts"+ "Fast Premium Prompts", then 升序排序 by "Total" column
-4. 先将所有 monthly-spend-limit 视为 0，再逐行按档位赋值:
-First loop: 
-If "On-Demand Spend" > 50, set "monthly-spend-limit" as 100. 
-Else if "On-Demand Spend" > 20, set "monthly-spend-limit" as 80
-Else if "On-Demand Spend" > 10, set "monthly-spend-limit" as 40
-Else if "On-Demand Spend" > 2 , set "monthly-spend-limit" as 20
-Else, continue
-Sencond loop: 
-If "Total" < 300, continue
-Else if "Total" < 500, increase "monthly-spend-limit" by 20
-Else if "Total" < 1000, increase "monthly-spend-limit" by 60
-Else if "Total" < 1500, increase "monthly-spend-limit" by 100
-Else if "Total" < 2000, increase "monthly-spend-limit" by 150
-Else, set "monthly-spend-limit" as 200
-5. 结果保存到新表「Cursor Licenses New」
+Refer to "Environment.md" for the development option to create youtube-downloader.py to 
+1. Download Youtube video which a person can access
+2. By default pick the highest resolution 
+3. Since personal Google credentail is used, find a way to well protect the credential. 
 
 # How serious I cam: 
 I want to share it with others

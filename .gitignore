@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Google Drive Sync - 凭据文件（绝对不能提交到版本控制）
+credentials.json
+token.json
+*_token.json
+*.gdrive_token*
