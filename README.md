@@ -62,7 +62,11 @@ python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --no-subtitles
 
 # 下载公开视频（不读取 cookies）
 python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos --browser none
+
+ 'https://www.youtube.com/watch?v=7jGs2u6f4b4' 'C:\Temp\vids' '--no-subtitles'
+ 
 ```
+
 
 ---
 
