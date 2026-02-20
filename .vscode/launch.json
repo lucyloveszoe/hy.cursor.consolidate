@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Python File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}"
+        },
+        {
+            "name": "youtube-downloader: debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/youtube-downloader.py",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "args": [
+                "https://www.youtube.com/watch?v=7jGs2u6f4b4",
+                "C:\\Temp\\vids",
+                "--no-subtitles"
+                
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ]
+}

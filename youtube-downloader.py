@@ -104,8 +104,10 @@ def progress_hook(d: dict) -> None:
 def build_ydl_opts(
     output_dir: Path,
     browser: str,
+    cookies_file: str,
     quality: int,
     subtitles: bool,
+    sub_langs: list[str],
     ffmpeg_available: bool,
 ) -> dict:
     """组装 yt-dlp 下载选项。"""
@@ -130,29 +132,38 @@ def build_ydl_opts(
         fmt = "best"
 
     opts: dict = {
-        "outtmpl":         outtmpl,
-        "format":          fmt,
-        "merge_output_format": "mp4",
-        "logger":          ProgressLogger(),
-        "progress_hooks":  [progress_hook],
-        "noplaylist":      True,       # 单视频模式，忽略播放列表参数
-        "quiet":           True,
-        "no_warnings":     False,
-        "ignoreerrors":    False,
+        "outtmpl":              outtmpl,
+        "format":               fmt,
+        "merge_output_format":  "mp4",
+        "logger":               ProgressLogger(),
+        "progress_hooks":       [progress_hook],
+        "noplaylist":           True,
+        "quiet":                True,
+        "no_warnings":          False,
+        "ignoreerrors":         False,
+        # 限流防护：请求间隔 1~3 秒，失败重试 3 次，每次等待 5 秒
+        "sleep_interval":       1,
+        "max_sleep_interval":   3,
+        "sleep_interval_requests": 1,
+        "retries":              3,
+        "fragment_retries":     3,
+        "retry_sleep_functions": {"http": lambda n: 5 * n},
     }
 
-    # 从浏览器读取 cookies（处理登录保护内容）
-    if browser and browser != "none":
+    # Cookies 处理（优先级：手动文件 > 浏览器自动读取）
+    if cookies_file:
+        opts["cookiefile"] = cookies_file
+    elif browser and browser != "none":
         opts["cookiesfrombrowser"] = (browser,)
 
     # 字幕选项
     if subtitles:
         opts.update({
-            "writesubtitles":     True,   # 下载手动上传的字幕
-            "writeautomaticsub":  True,   # 下载自动生成字幕（YouTube Auto-Caption）
-            "subtitleslangs":     ["all"],  # 所有语言
-            "subtitlesformat":    "srt/vtt/best",
-            "embedsubtitles":     False,  # 字幕保存为单独文件，方便查看
+            "writesubtitles":    True,
+            "writeautomaticsub": True,
+            "subtitleslangs":    sub_langs,
+            "subtitlesformat":   "srt/vtt/best",
+            "embedsubtitles":    False,
         })
 
     # ffmpeg 路径（如果在 PATH 里则自动找到）
@@ -167,8 +178,10 @@ def download_video(
     url: str,
     output_dir: Path,
     browser: str,
+    cookies_file: str,
     quality: int,
     subtitles: bool,
+    sub_langs: list[str],
 ) -> bool:
     """执行下载，返回是否成功。"""
 
@@ -184,27 +197,73 @@ def download_video(
 
     # 先获取视频信息（标题、时长等）
     print(colored(C.DIM, "\n  正在获取视频信息..."))
+    
+    # 尝试不同的 cookies 获取方式
     info_opts = {"quiet": True, "no_warnings": True, "skip_download": True}
-    if browser and browser != "none":
-        info_opts["cookiesfrombrowser"] = (browser,)
-
-    try:
-        with yt_dlp.YoutubeDL(info_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-    except yt_dlp.utils.DownloadError as e:
-        msg = str(e)
-        if "Sign in" in msg or "login" in msg.lower() or "private" in msg.lower():
-            print(colored(C.RED,
-                "\n  [错误] 视频需要登录才能访问。\n"
-                f"         当前使用浏览器：{browser}\n"
-                "         请确认该浏览器已登录 YouTube，或用 --browser 指定其他浏览器。"
-            ))
-        else:
-            print(colored(C.RED, f"\n  [错误] 无法获取视频信息：{e}"))
-        return False
-    except Exception as e:
-        print(colored(C.RED, f"\n  [错误] {e}"))
-        return False
+    cookies_success = False
+    
+    # 优先使用手动指定的 cookies 文件
+    if cookies_file:
+        if not Path(cookies_file).exists():
+            print(colored(C.RED, f"\n  [错误] Cookies 文件不存在：{cookies_file}"))
+            return False
+        try:
+            info_opts["cookiefile"] = cookies_file
+            with yt_dlp.YoutubeDL(info_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+            cookies_success = True
+            print(colored(C.GREEN, f"  ✓ 使用 cookies 文件：{cookies_file}"))
+        except Exception as e:
+            print(colored(C.RED, f"\n  [错误] Cookies 文件无效：{e}"))
+            return False
+    
+    # 如果没有手动 cookies，尝试从浏览器读取
+    elif browser and browser != "none":
+        try:
+            info_opts["cookiesfrombrowser"] = (browser,)
+            with yt_dlp.YoutubeDL(info_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+            cookies_success = True
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "cookie" in error_msg or "database" in error_msg or "dpapi" in error_msg:
+                print(colored(C.YELLOW, 
+                    f"\n  [警告] 无法从 {browser} 读取 cookies\n"
+                    "         常见原因：浏览器正在运行、DPAPI 解密失败、权限问题\n"
+                    "         解决方案：\n"
+                    "         1. 完全关闭浏览器后重试\n"
+                    "         2. 使用其他浏览器：--browser edge/firefox\n"
+                    "         3. 手动导出 cookies：--cookies cookies.txt\n"
+                    "         4. 下载公开视频：--browser none\n"
+                    "         现在尝试不使用 cookies..."
+                ))
+                # 移除 cookies 选项，尝试下载公开内容
+                info_opts.pop("cookiesfrombrowser", None)
+            else:
+                raise e
+    
+    # 如果 cookies 失败或不使用 cookies，直接尝试获取信息
+    if not cookies_success:
+        try:
+            with yt_dlp.YoutubeDL(info_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+        except yt_dlp.utils.DownloadError as e:
+            msg = str(e)
+            if "Sign in" in msg or "login" in msg.lower() or "private" in msg.lower():
+                print(colored(C.RED,
+                    "\n  [错误] 视频需要登录才能访问。\n"
+                    f"         当前使用浏览器：{browser}\n"
+                    "         请尝试：\n"
+                    "         1. 完全关闭浏览器后重试\n"
+                    "         2. 使用其他浏览器：--browser edge/firefox\n"
+                    "         3. 确认该浏览器已登录 YouTube"
+                ))
+            else:
+                print(colored(C.RED, f"\n  [错误] 无法获取视频信息：{e}"))
+            return False
+        except Exception as e:
+            print(colored(C.RED, f"\n  [错误] {e}"))
+            return False
 
     # 显示视频信息
     title    = info.get("title", "未知标题")
@@ -223,13 +282,26 @@ def download_video(
     print()
 
     # 执行下载
-    ydl_opts = build_ydl_opts(output_dir, browser, quality, subtitles, ffmpeg_ok)
+    actual_browser = browser if cookies_success and not cookies_file else "none"
+    actual_cookies = cookies_file if cookies_file else None
+    ydl_opts = build_ydl_opts(output_dir, actual_browser, actual_cookies, quality, subtitles, sub_langs, ffmpeg_ok)
+    
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
         return True
     except yt_dlp.utils.DownloadError as e:
-        print(colored(C.RED, f"\n  [错误] 下载失败：{e}"))
+        error_msg = str(e).lower()
+        if "cookie" in error_msg or "database" in error_msg:
+            print(colored(C.RED, 
+                f"\n  [错误] Cookies 读取失败：{e}\n"
+                "         解决方案：\n"
+                "         1. 完全关闭所有浏览器窗口和进程\n"
+                "         2. 使用其他浏览器：--browser edge/firefox\n"
+                "         3. 下载公开视频：--browser none"
+            ))
+        else:
+            print(colored(C.RED, f"\n  [错误] 下载失败：{e}"))
         return False
     except Exception as e:
         print(colored(C.RED, f"\n  [错误] 意外错误：{e}"))
@@ -245,13 +317,19 @@ def parse_args() -> argparse.Namespace:
 示例：
   python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos
   python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos --browser edge
+  python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos --cookies cookies.txt
   python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos --quality 1080
   python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos --no-subtitles
-  python youtube-downloader.py "https://youtu.be/xxxxx" D:\\Videos --browser none
+  python youtube-downloader.py "https://youtu.be/xxxxx" D\\Videos --browser none
 
 支持的浏览器（--browser）：
   chrome（默认）, edge, firefox, safari, brave, opera, chromium
   none = 不使用 cookies（只能访问公开视频）
+
+手动导出 cookies（解决 DPAPI 错误）：
+  1. 安装浏览器扩展：Get cookies.txt LOCALLY
+  2. 在 YouTube 页面点击扩展图标
+  3. 保存为 cookies.txt，使用 --cookies cookies.txt
 """,
     )
     parser.add_argument("url",        help="YouTube 视频 URL")
@@ -260,6 +338,11 @@ def parse_args() -> argparse.Namespace:
         "--browser", "-b",
         default="chrome",
         help="从哪个浏览器读取 cookies（默认：chrome）",
+    )
+    parser.add_argument(
+        "--cookies", "-c",
+        metavar="FILE",
+        help="使用指定的 cookies 文件（.txt 格式，优先级高于 --browser）",
     )
     parser.add_argument(
         "--quality", "-q",
@@ -273,6 +356,13 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="不下载字幕",
+    )
+    parser.add_argument(
+        "--sub-langs", "-s",
+        nargs="+",
+        default=["zh-Hans", "zh-Hant", "zh", "en"],
+        metavar="LANG",
+        help="下载指定语言字幕（默认：zh-Hans zh-Hant zh en），all=全部语言",
     )
     return parser.parse_args()
 
@@ -291,12 +381,15 @@ def main() -> None:
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    sub_langs = args.sub_langs if not args.no_subtitles else []
     success = download_video(
-        url        = args.url,
-        output_dir = output_dir,
-        browser    = args.browser,
-        quality    = args.quality,
-        subtitles  = not args.no_subtitles,
+        url          = args.url,
+        output_dir   = output_dir,
+        browser      = args.browser,
+        cookies_file = args.cookies,
+        quality      = args.quality,
+        subtitles    = not args.no_subtitles,
+        sub_langs    = sub_langs,
     )
 
     if success:
