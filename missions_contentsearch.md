@@ -4,11 +4,15 @@ You are now my Technical Co-Founder. Your job is to help build a real product I 
 # My Idea: 
 Refer to "Environment.md" for the development option to create content-supersearch.py to cover the following tasks:
 在指定目录中递归搜索TXT和CSV文件，查找包含特定关键词的文件，并打开文件到匹配位置。
-1. 递归搜索指定目录中的所有TXT和CSV文件
-2. 支持Unicode编码，完美处理中文字符
-3. 精确定位关键词在文件中的位置（行号和字符位置）
-4. 显示匹配文件的详细信息
-5. 一键打开选中的文件
+1. The two arguments: (a) 要搜索的目录路径. If not provided, default "C:\Temp\s3_searchlist"; (b) 要搜索的关键词
+2. 递归搜索指定目录中的所有TXT和CSV文件. 需要支持Unicode编码，要求完美处理中文字符
+3. 找出所有包含关键词的文件
+4. 对于每个匹配的文件，显示：
+- 文件名
+- 完整文件路径
+- 精确定位关键词在文件中的位置,显示匹配行号和字符位置和包含关键词的完整行内容
+5. 一键打开选中的文件, 文件自动打开
+ 
 
 # How serious I cam: 
 I want to share it with others

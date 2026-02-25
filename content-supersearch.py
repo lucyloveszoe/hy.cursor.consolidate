@@ -17,6 +17,8 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
+DEFAULT_SEARCH_DIR = r"C:\Temp\s3_searchlist"
+
 # ── 终端颜色（无需额外依赖，使用 ANSI 转义码）──────────────────────────────
 class Color:
     RESET   = "\033[0m"
@@ -89,7 +91,6 @@ def read_lines(path: Path) -> tuple[Optional[list[str]], str]:
 # ── 核心搜索逻辑 ────────────────────────────────────────────────────────────
 def search_file(path: Path, keyword: str, case_sensitive: bool) -> Optional[FileResult]:
     """在单个文件中搜索关键词，返回 FileResult 或 None（无匹配或读取失败）。"""
-    print(path)
     lines, enc = read_lines(path)
     if lines is None:
         return None
@@ -101,7 +102,6 @@ def search_file(path: Path, keyword: str, case_sensitive: bool) -> Optional[File
         text = raw_line.rstrip("\n\r")
         haystack = text if case_sensitive else text.lower()
 
-        col = 0
         search_from = 0
         while True:
             pos = haystack.find(kw, search_from)
@@ -134,16 +134,18 @@ def search_directory(
 
     print(c(Color.DIM, f"\n  正在扫描 {total} 个文件..."))
 
+    bar_width = 30
     for i, path in enumerate(files, 1):
-        # 进度提示（每 50 个文件或最后一个）
-        if i % 50 == 0 or i == total:
-            print(c(Color.DIM, f"  [{i}/{total}] {path.name}"), end="\r")
+        filled = int(bar_width * i / total)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        label = c(Color.DIM, f"  [{bar}] {i}/{total}  {path.name[:30]:<30}")
+        print(label, end="\r", flush=True)
 
         fr = search_file(path, keyword, case_sensitive)
         if fr:
             results.append(fr)
 
-    print(" " * 60, end="\r")  # 清除进度行
+    print(" " * (bar_width + 60), end="\r", flush=True)  # 清除进度行
     return results
 
 
@@ -256,7 +258,8 @@ def parse_args() -> argparse.Namespace:
   python content-supersearch.py                     # 交互式模式
 """,
     )
-    parser.add_argument("directory", nargs="?", help="搜索目录路径")
+    parser.add_argument("directory", nargs="?", default=DEFAULT_SEARCH_DIR,
+                        help=f"搜索目录路径（默认：{DEFAULT_SEARCH_DIR}）")
     parser.add_argument("keyword",   nargs="?", help="搜索关键词")
     parser.add_argument(
         "--case-sensitive", "-c",
@@ -287,13 +290,13 @@ def main() -> None:
     args = parse_args()
 
     print(c(Color.CYAN + Color.BOLD, "\n╔══════════════════════════════════╗"))
-    print(c(Color.CYAN + Color.BOLD,   "║     Content SuperSearch v1.0     ║"))
+    print(c(Color.CYAN + Color.BOLD,   "║     Content SuperSearch v2.0     ║"))
     print(c(Color.CYAN + Color.BOLD,   "╚══════════════════════════════════╝"))
 
-    # 获取搜索目录
+    # 获取搜索目录（命令行参数已含默认值，交互模式下支持覆盖）
     dir_str = args.directory
-    while not dir_str:
-        dir_str = prompt_input("\n搜索目录：")
+    if not dir_str:
+        dir_str = prompt_input(f"\n搜索目录（直接回车使用默认 {DEFAULT_SEARCH_DIR}）：") or DEFAULT_SEARCH_DIR
 
     root = Path(dir_str).expanduser().resolve()
     if not root.exists():
@@ -302,11 +305,6 @@ def main() -> None:
     if not root.is_dir():
         print(c(Color.RED, f"\n  错误：路径不是目录 → {root}"))
         sys.exit(1)
-
-    # 获取关键词
-    keyword = args.keyword
-    while not keyword:
-        keyword = prompt_input("搜索关键词：")
 
     # 确保扩展名带点
     extensions = tuple(
@@ -318,18 +316,37 @@ def main() -> None:
     mode_label = "区分大小写" if case_sensitive else "不区分大小写"
 
     print(c(Color.DIM, f"\n  目录：{root}"))
-    print(c(Color.DIM, f"  关键词：{keyword!r}  [{mode_label}]"))
-    print(c(Color.DIM, f"  扩展名：{', '.join(extensions)}"))
+    print(c(Color.DIM, f"  扩展名：{', '.join(extensions)}  [{mode_label}]"))
 
-    # 执行搜索
-    results = search_directory(root, keyword, case_sensitive, extensions)
+    # 首次关键词（命令行提供则直接使用，否则交互输入）
+    keyword = args.keyword
 
-    # 展示结果
-    display_results(results, keyword, case_sensitive)
+    # ── 搜索主循环：同一目录可连续用不同关键词搜索 ──────────────────────────
+    while True:
+        if not keyword:
+            try:
+                keyword = prompt_input("\n搜索关键词（直接回车退出）：")
+            except (EOFError, KeyboardInterrupt):
+                print()
+                break
+        if not keyword:
+            break
 
-    # 交互式打开
-    if results:
-        interactive_open(results)
+        print(c(Color.DIM, f"  关键词：{keyword!r}"))
+
+        # 执行搜索
+        results = search_directory(root, keyword, case_sensitive, extensions)
+
+        # 展示结果
+        display_results(results, keyword, case_sensitive)
+
+        # 交互式打开
+        if results:
+            interactive_open(results)
+
+        # 准备下一轮（清空关键词，进入循环输入）
+        keyword = ""
+        print(c(Color.DIM, "  " + "─" * 40))
 
     print(c(Color.DIM, "\n  搜索完成。再见！\n"))
 
