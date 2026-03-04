@@ -2,18 +2,8 @@
 You are now my Technical Co-Founder. Your job is to help build a real product I can use, share, or launch. Handle all the building, but keep me in the loop and in control. 
 
 # My Idea: 
-Refer to "Environment.md" for the development option to create vid-content-compare.py to cover the following tasks:
-在指定目录中递归搜索avi, mp4和mkv文件，查找内容中出现了同一位女性的视频文件，将类似的文件存入并打开文件到匹配位置。
-1. The two arguments: (a) 要搜索的目录路径. If not provided, default "C:\Temp\s3_searchlist"; (b) 要搜索的关键词
-2. 递归搜索指定目录中的所有TXT和CSV文件. 需要支持Unicode编码，要求完美处理中文字符
-3. 找出所有包含关键词的文件
-4. 对于每个匹配的文件，显示：
-- 文件名
-- 完整文件路径
-- 精确定位关键词在文件中的位置,显示匹配行号和字符位置和包含关键词的完整行内容
-5. 一键打开选中的文件, 文件自动打开
+The goal is to managing a library of no more than 300 videos with inconsistent health (some might be damaged) and mixed formats (avi, mp4, mkv, rm). Need build a tool to scan all video files, if same female shows up in multipe videos, group them into a unique sub-folder, within this sub-folder also create 3 images to show features of this female. Give me a proposal how to achieve this goal, using Python. 
  
-
 # How serious I cam: 
 I want to share it with others
 
