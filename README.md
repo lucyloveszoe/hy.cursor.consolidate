@@ -2,6 +2,15 @@
 
 存放所有小工具、Cursor 提示词和实用脚本。
 
+## MacOS 
+source .venv/bin/activate
+pip install -r requirements.txt
+
+
+## Windows 
+.\.venv\Scripts\Activate.ps1
+
+
 ---
 
 ## 工具列表
@@ -17,9 +26,6 @@
 - 输入编号一键用系统程序打开文件
 
 **用法：**
-```powershell
-# 激活虚拟环境
-.\.venv\Scripts\Activate.ps1
 
 # 命令行模式（目录 + 关键词）
 python content-supersearch.py C:\Documents 报告
@@ -34,6 +40,12 @@ python content-supersearch.py D:\Data keyword --case-sensitive
 python content-supersearch.py D:\Data keyword --ext .txt .csv .log
 ```
 
+
+python S3FileDownloader.py <s3_prefix> <local_folder> <min_mb> <max_mb> <concurrency>
+python S3FileDownloader.py "s3://yu.tg/videos/午夜 小宝/" ~/vids-download 400 500 2
+python S3FileDownloader.py "s3://yu.tg/videos/午夜 小宝/" ~/vids-download 1 200 6  
+
+
 ---
 
 ### youtube-downloader.py — YouTube 视频下载
@@ -45,8 +57,6 @@ python content-supersearch.py D:\Data keyword --ext .txt .csv .log
 - 安装 ffmpeg 以获得 1080p/4K 最高画质：`winget install ffmpeg`
 
 **用法：**
-```powershell
-.\.venv\Scripts\Activate.ps1
 
 # 基本用法（最高画质 + 所有字幕）
 python youtube-downloader.py "https://youtu.be/xxxxx" D:\Videos

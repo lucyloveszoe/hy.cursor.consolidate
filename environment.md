@@ -2,11 +2,13 @@
 # All .py scripts share the same virtual environment
 
 ## for MacOS 
+```
+python3 -m venv .venv
 python3 --version && which python3
 python3 -m venv .venv 
 source .venv/bin/activate 
 pip install -r requirements.txt 
-
+```
 
 ## for Windows 
 
